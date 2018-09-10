@@ -10,8 +10,10 @@ package cmbt;
 import robocode.HitByBulletEvent;
 import robocode.AdvancedRobot;
 import robocode.ScannedRobotEvent;
-
+import java.util.Random;
 import java.awt.*;
+import java.awt.geom.*;
+import robocode.util.Utils;
 
 
 /**
@@ -31,56 +33,122 @@ public class WaterRooster extends AdvancedRobot {
     /**
      * PaintingRobot's run method - Seesaw
      */
+
     public void run() {
+
         while (true) {
-            ahead(100);
-            turnGunRight(360);
-            back(100);
-            turnGunRight(360);
+            setAdjustGunForRobotTurn(true);
+            setAdjustRadarForGunTurn(true);
+            double random = Math.random() * 150 + 1;
+            double random1 = Math.random() * 150 + 1;
+
+            setColors(Color.RED, Color.BLACK, Color.WHITE);
+
+            setTurnRadarRight(Double.POSITIVE_INFINITY);
+            setTurnGunRight(Double.POSITIVE_INFINITY);
+            ahead(random);
+
+
+            back(random1);
+
+
         }
     }
+
 
     /**
      * Fire when we see a robot
      */
-    public void onScannedRobot(ScannedRobotEvent e) {
-        // demonstrate feature of debugging properties on RobotDialog
-        setDebugProperty("lastScannedRobot", e.getName() + " at " + e.getBearing() + " degrees at time " + getTime());
+    public class WaveBullet {
 
-        fire(1);
-    }
+        private double startX, startY, startBearing, power;
+        private long fireTime;
+        private int direction;
+        private int[] returnSegment;
 
-    /**
-     * We were hit!  Turn perpendicular to the bullet,
-     * so our seesaw might avoid a future shot.
-     * In addition, draw orange circles where we were hit.
-     */
-    public void onHitByBullet(HitByBulletEvent e) {
-        // demonstrate feature of debugging properties on RobotDialog
-        setDebugProperty("lastHitBy", e.getName() + " with power of bullet " + e.getPower() + " at time " + getTime());
+        public WaveBullet(double x, double y, double bearing, double power, //wave of enemy bullets
+                          int direction, long time, int[] segment) {
+            startX = x;
+            startY = y;
+            startBearing = bearing;
+            this.power = power;
+            this.direction = direction;
+            fireTime = time;
+            returnSegment = segment;
+        }
 
-        // show how to remove debugging property
-        setDebugProperty("lastScannedRobot", null);
+        public double getBulletSpeed() {
+            return 20 - power * 3;
+        }
 
-        // gebugging by painting to battle view
-        Graphics2D g = getGraphics();
+        public double maxEscapeAngle() //farthest place enemy can be
+        {
+            return Math.asin(8 / getBulletSpeed());
+        }
 
-        g.setColor(Color.orange);
-        g.drawOval((int) (getX() - 55), (int) (getY() - 55), 110, 110);
-        g.drawOval((int) (getX() - 56), (int) (getY() - 56), 112, 112);
-        g.drawOval((int) (getX() - 59), (int) (getY() - 59), 118, 118);
-        g.drawOval((int) (getX() - 60), (int) (getY() - 60), 120, 120);
+        public boolean checkHit(double enemyX, double enemyY, long currentTime)                     //CHECKS IF WAVE HITS IF IT DOES STOP SCANNING WAVE
+        {
+            // if the distance from the wave origin to our enemy has passed
+            // the distance the bullet would have traveled...
+            if (Point2D.distance(startX, startY, enemyX, enemyY) <=
+                    (currentTime - fireTime) * getBulletSpeed()) {
+                double desiredDirection = Math.atan2(enemyX - startX, enemyY - startY);
+                double angleOffset = Utils.normalRelativeAngle(desiredDirection - startBearing);
+                double guessFactor =
+                        Math.max(-1, Math.min(1, angleOffset / maxEscapeAngle())) * direction;
+                int index = (int) Math.round((returnSegment.length - 1) / 2 * (guessFactor + 1));
+                returnSegment[index]++;
+                return true;
+            }
+            return false;
+        }
 
-        turnLeft(90 - e.getBearing());
-    }
+        public void onScannedRobot(ScannedRobotEvent e) {
+            // demonstrate feature of debugging properties on RobotDialog
+            setTurnRadarLeftRadians(getRadarTurnRemainingRadians());
+            setTurnRadarRight(2.0 * Utils.normalRelativeAngleDegrees(getHeading() + e.getBearing() - getRadarHeading()));
+            setDebugProperty("lastScannedRobot", e.getName() + " at " + e.getBearing() + " degrees at time " + getTime());
 
-    /**
-     * Paint a red circle around our PaintingRobot
-     */
-    public void onPaint(Graphics2D g) {
-        g.setColor(Color.red);
-        g.drawOval((int) (getX() - 50), (int) (getY() - 50), 100, 100);
-        g.setColor(new Color(0, 0xFF, 0, 30));
-        g.fillOval((int) (getX() - 60), (int) (getY() - 60), 120, 120);
+
+            fire(1);
+        }
+
+
+        /**
+         * We were hit!  Turn perpendicular to the bullet,
+         * so our seesaw might avoid a future shot.
+         * In addition, draw orange circles where we were hit.
+         */
+        public void onHitByBullet(HitByBulletEvent e) {
+            // demonstrate feature of debugging properties on RobotDialog
+            setDebugProperty("lastHitBy", e.getName() + " with power of bullet " + e.getPower() + " at time " + getTime());
+
+            // show how to remove debugging property
+            setDebugProperty("lastScannedRobot", null);
+
+            // gebugging by painting to battle view
+            Graphics2D g = getGraphics();
+
+            g.setColor(Color.orange);
+            g.drawOval((int) (getX() - 55), (int) (getY() - 55), 110, 110);
+            g.drawOval((int) (getX() - 56), (int) (getY() - 56), 112, 112);
+            g.drawOval((int) (getX() - 59), (int) (getY() - 59), 118, 118);
+            g.drawOval((int) (getX() - 60), (int) (getY() - 60), 120, 120);
+
+            turnLeft(90 - e.getBearing());
+        }
+
+        /**
+         * Paint a red circle around our PaintingRobot
+         */
+        public void onPaint(Graphics2D g) {
+            g.setColor(Color.red);
+            g.drawOval((int) (getX() - 50), (int) (getY() - 50), 100, 100);
+            g.setColor(new Color(0, 0xFF, 0, 30));
+            g.fillOval((int) (getX() - 60), (int) (getY() - 60), 120, 120);
+        }
     }
 }
+
+
+

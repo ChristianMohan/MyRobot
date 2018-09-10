@@ -8,12 +8,12 @@
 package sample;
 
 
+import robocode.AdvancedRobot;
 import robocode.HitByBulletEvent;
 import robocode.Robot;
 import robocode.ScannedRobotEvent;
 
 import java.awt.*;
-
 
 /**
  * PaintingRobot - a sample robot that demonstrates the onPaint() and
@@ -27,17 +27,19 @@ import java.awt.*;
  * @author Stefan Westen (original SGSample)
  * @author Pavel Savara (contributor)
  */
-public class PaintingRobot extends Robot {
+public class PaintingRobot extends AdvancedRobot {
 
 	/**
 	 * PaintingRobot's run method - Seesaw
 	 */
 	public void run() {
 		while (true) {
+			setTurnRadarRight(Double.POSITIVE_INFINITY);
+			setTurnGunRight(Double.POSITIVE_INFINITY);
 			ahead(100);
-			turnGunRight(360);
+
 			back(100);
-			turnGunRight(360);
+
 		}
 	}
 
