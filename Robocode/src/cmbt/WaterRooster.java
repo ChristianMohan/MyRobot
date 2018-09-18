@@ -53,7 +53,7 @@ public class WaterRooster extends AdvancedRobot {
             setColors(Color.RED, Color.BLACK, Color.WHITE);
 
             setTurnRadarRight(Double.POSITIVE_INFINITY);
-
+            setTurnGunRight(Double.POSITIVE_INFINITY);
             ahead(random);
 
 
@@ -123,32 +123,32 @@ public class WaterRooster extends AdvancedRobot {
         //enemy absoute bearing
 
         double absBearing = getHeadingRadians() + e.getBearingRadians();
-        //enemy location
-        double enemyx = getX() + Math.sin(absBearing) * e.getDistance();
-        double enemyy = getY() + Math.sin(absBearing) * e.getDistance();
-
-        //radar lock on
-        // Absolute bearing to target
         double radarTurn = absBearing - getRadarHeadingRadians();
+
+        //enemy location
+        double ex = getX() + Math.sin(absBearing) * e.getDistance();
+        double ey = getY() + Math.cos(absBearing) * e.getDistance();
+
+
+
 
         setTurnRadarRightRadians(Utils.normalRelativeAngle(radarTurn));
 
         //gun lock on
-        double gunTurn = getHeadingRadians() + e.getBearingRadians() - getGunHeadingRadians();
 
-        setTurnGunRightRadians(Utils.normalRelativeAngle(gunTurn));
 
         for (int i=0; i < waves.size(); i++)
         {
             WaveBullet currentWave = (WaveBullet)waves.get(i);
-            if (currentWave.checkHit(enemyx, enemyy, getTime()))
+            if (currentWave.checkHit(ex, ey, getTime()))
             {
                 waves.remove(currentWave);
                 i--;
             }
         }
-
-
+        double power = Math.min(1000 / e.getDistance(), 3);
+        // don't try to figure out the direction they're moving
+        // they're not moving, just use the direction we had before
         if (e.getVelocity() != 0)
         {
             if (Math.sin(e.getHeadingRadians()-absBearing)*e.getVelocity() < 0)
@@ -156,16 +156,16 @@ public class WaterRooster extends AdvancedRobot {
             else
                 direction = 1;
         }
-        int[] currentStats = stats;
-
+        int[] currentStats = stats; // This seems silly, but I'm using it to
+        // show something else later
         WaveBullet newWave = new WaveBullet(getX(), getY(), absBearing, power,
                 direction, getTime(), currentStats);
 
         int bestindex = 15;	// initialize it to be in the middle, guessfactor 0.
         for (int i=0; i<31; i++)
-            if (currentStats[bestindex] < currentStats[i]) {
+            if (currentStats[bestindex] < currentStats[i])
                 bestindex = i;
-            }
+
         // this should do the opposite of the math in the WaveBullet:
         double guessfactor = (double)(bestindex - (stats.length - 1) / 2)
                 / ((stats.length - 1) / 2);
@@ -174,15 +174,17 @@ public class WaterRooster extends AdvancedRobot {
                 absBearing - getGunHeadingRadians() + angleOffset);
         setTurnGunRightRadians(gunAdjust);
 
+        if (getGunHeat() == 0 && gunAdjust < Math.atan2(9, e.getDistance()) && setFireBullet(power) != null) {
+            if (setFireBullet(power) != null) {
 
-        if (setFireBullet() != null)
-            waves.add(newWave);
-
+                waves.add(newWave);
+            }
+        }
 
 
         setDebugProperty("lastScannedRobot", e.getName() + " at " + e.getBearing() + " degrees at time " + getTime());
 
-        fire(1);
+
 
     }
 
@@ -208,7 +210,7 @@ public class WaterRooster extends AdvancedRobot {
         g.drawOval((int) (getX() - 59), (int) (getY() - 59), 118, 118);
         g.drawOval((int) (getX() - 60), (int) (getY() - 60), 120, 120);
 
-        turnLeft(90 - e.getBearing());
+
     }
 
     /**
