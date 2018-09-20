@@ -1,4 +1,5 @@
 package cmbt;
+
 /**
  * Copyright (c) 2001-2017 Mathew A. Nelson and Robocode contributors
  * All rights reserved. This program and the accompanying materials
@@ -15,6 +16,12 @@ import java.awt.*;
 import java.awt.geom.*;
 import robocode.util.Utils;
 import java.util.List;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.Color;
+import robocode.util.Utils;
+
+
 
 
 /**
@@ -53,7 +60,7 @@ public class WaterRooster extends AdvancedRobot {
             setColors(Color.RED, Color.BLACK, Color.WHITE);
 
             setTurnRadarRight(Double.POSITIVE_INFINITY);
-            setTurnGunRight(Double.POSITIVE_INFINITY);
+
             ahead(random);
 
 
@@ -63,8 +70,11 @@ public class WaterRooster extends AdvancedRobot {
         }
     }
 
+
+
     public class WaveBullet
     {
+
         private double startX, startY, startBearing, power;
         private long   fireTime;
         private int    direction;
@@ -146,7 +156,7 @@ public class WaterRooster extends AdvancedRobot {
                 i--;
             }
         }
-        double power = Math.min(1000 / e.getDistance(), 3);
+        double power = Math.min(800 / e.getDistance(), 3);
         // don't try to figure out the direction they're moving
         // they're not moving, just use the direction we had before
         if (e.getVelocity() != 0)
