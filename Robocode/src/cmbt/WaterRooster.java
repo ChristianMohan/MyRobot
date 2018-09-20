@@ -43,6 +43,7 @@ public class WaterRooster extends AdvancedRobot {
      */
 
     //VARIABLES
+
     List<WaveBullet> waves = new ArrayList<WaveBullet>();
     static int[] stats = new int[31];
     int direction = 1;
