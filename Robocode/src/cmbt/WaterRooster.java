@@ -48,6 +48,8 @@ public class WaterRooster extends AdvancedRobot {
     public Point2D.Double _myLocation;     // our bot's location
     public Point2D.Double _enemyLocation;  // enemy bot's location
 
+
+
     public ArrayList _enemyWaves;
     public ArrayList _surfDirections;
     public ArrayList _surfAbsBearings;
@@ -362,6 +364,11 @@ public double checkDanger(EnemyWave surfWave, int direction) {
 
         double absBearing = getHeadingRadians() + e.getBearingRadians();
 
+        double[] dataPoint = new double[3];
+        dataPoint[0] = Math.abs(e.getVelocity()) / 8;
+        dataPoint[1] = Utils.normalAbsoluteAngle(e.getHeadingRadians() - absBearing)
+                / (2 * Math.PI);
+        dataPoint[2] = e.getEnergy() / 100;
 
 
         //double radarTurn = absBearing - getRadarHeadingRadians();
@@ -456,7 +463,11 @@ public double checkDanger(EnemyWave surfWave, int direction) {
             }
         }
 
+        double en = getEnergy();
 
+        if(en <= 80) {
+            setFireBullet(0);
+        }
         setDebugProperty("lastScannedRobot", e.getName() + " at " + e.getBearing() + " degrees at time " + getTime());
 
 
