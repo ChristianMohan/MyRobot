@@ -463,11 +463,7 @@ public double checkDanger(EnemyWave surfWave, int direction) {
             }
         }
 
-        double en = getEnergy();
-
-        if(en <= 80) {
-            setFireBullet(0);
-        }
+        
         setDebugProperty("lastScannedRobot", e.getName() + " at " + e.getBearing() + " degrees at time " + getTime());
 
 
